@@ -6,6 +6,8 @@ import re
 import StringIO
 from wsgiref import simple_server
 
+import db
+
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -39,6 +41,15 @@ def handle_event(data):
     LOG.info('event_info: %s' % event_info)
 
     Node(event_info, path_info['node_name']).write_out()
+
+    # save to database as well
+
+    session = db.get_session()
+    this_run = db.Run(id=event_info['run_id'],
+                      node=path_info['node_name'],
+                      **event_info)
+    this_run = session.merge(this_run)
+    session.commit()
 
 
 def sink_app(environ, start_response):
@@ -77,6 +88,7 @@ def main():
     LOG.info('Starting server on port %s' % port)
 
     httpd.serve_forever()
+
 
 if __name__ == '__main__':
     main()
