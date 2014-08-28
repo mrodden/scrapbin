@@ -1,13 +1,45 @@
-from wsgiref import simple_server
+
 import gzip
-
-import StringIO
-
+import json
 import logging
+import re
+import StringIO
+from wsgiref import simple_server
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
+
+
+class Node(object):
+
+    def __init__(self, event, node_name):
+        self.event = event
+        self.node_name = node_name
+
+    def write_out(self):
+        filename = '%s.json' % self.node_name
+        with open(filename, 'a') as node_json:
+            json.dump(self.event, node_json)
+            node_json.write('\n')
+        LOG.info('Wrote data to %s' % filename)
+
+
+def handle_event(data):
+    event_info = json.loads(data['body'])
+    path_info = re.match('/reports/nodes/(?P<node_name>.+)/runs/?(?P<run_id>.+)?',
+                         data['path']).groupdict()
+    # path_info
+    # {'node_name': 'somehost.example.com',
+    #  'run_id': '121f4e67-5a0a-4456-b04d-42e00f92dc03'}
+
+    if path_info.get('run_id'):
+        event_info['run_id'] = path_info['run_id']
+
+    LOG.info('event_info: %s' % event_info)
+
+    Node(event_info, path_info['node_name']).write_out()
+
 
 def sink_app(environ, start_response):
     status = '200 OK'
@@ -31,7 +63,11 @@ def sink_app(environ, start_response):
         else:
             data['body'] = body_stream.read(content_length)
 
+
     LOG.info(data)
+
+    handle_event(data)
+
     return ''
 
 
