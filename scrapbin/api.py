@@ -6,7 +6,7 @@ import re
 import StringIO
 from wsgiref import simple_server
 
-import db
+from scrapbin import db
 
 logging.basicConfig()
 LOG = logging.getLogger(__name__)
