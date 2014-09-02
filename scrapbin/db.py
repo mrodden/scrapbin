@@ -5,7 +5,7 @@ import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime
 
 Base = sqlalchemy.ext.declarative.declarative_base()
 
@@ -21,18 +21,23 @@ def get_session():
 
     return session_fact()
 
+
 class Run(Base):
     __tablename__ = 'runs'
 
     id = Column(String, primary_key=True)
     status = Column(String)
     run_list = Column(String)
-    start_time = Column(String)
-    end_time = Column(String)
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
     _data = Column('data', String)
     _resources = Column('resources', String)
     total_res_count = Column(Integer)
     node = Column(String)
+
+    _attrs = ['id', 'status', 'run_list', 'start_time',
+              'end_time', 'total_res_count', 'node',
+              'data', 'resources']
 
     @property
     def resources(self):
@@ -51,10 +56,11 @@ class Run(Base):
         self._data = json.dumps(value)
 
     def __init__(self, **kwargs):
-        for attr in ['id', 'status', 'run_list', 'start_time',
-                     'end_time', 'total_res_count', 'node',
-                     'data', 'resources']:
+        for attr in self._attrs:
             setattr(self, attr, kwargs.get(attr))
 
     def __repr__(self):
         return "<Run(id='%s', status='%s')>" % (self.id, self.status)
+
+    def to_json(self):
+        return { attr: getattr(self, attr) for attr in self._attrs }
