@@ -1,6 +1,7 @@
 
 import json
 
+import arrow
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
@@ -57,6 +58,13 @@ class Run(Base):
 
     def __init__(self, **kwargs):
         for attr in self._attrs:
+            if ('time' in attr and
+                kwargs.get(attr) is not None):
+                val = arrow.get(kwargs.get(attr),
+                                'YYYY-MM-DD HH:mm:ss Z').to('utc').naive
+                setattr(self, attr, val)
+                continue
+
             setattr(self, attr, kwargs.get(attr))
 
     def __repr__(self):
