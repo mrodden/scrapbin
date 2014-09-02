@@ -30,7 +30,6 @@ def record_event(event_info, path_info):
     Node(event_info, path_info['node_name']).write_out()
 
     # save to database as well
-
     session = db.get_session()
     this_run = db.Run(id=event_info['run_id'],
                       node=path_info['node_name'],

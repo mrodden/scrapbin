@@ -77,7 +77,7 @@ def main():
     loggingConfig()
     app = flask.Flask('scrapbin')
     add_routes(app)
-    app.run(port=5000, debug=True)
+    app.run(port=5000)
 
 
 if __name__ == '__main__':
