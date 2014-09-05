@@ -17,6 +17,7 @@ import json
 import logging
 import re
 import StringIO
+import uuid
 from wsgiref import simple_server
 
 from scrapbin import db
@@ -83,10 +84,17 @@ def handle_request(environ, record=True):
     if path_info.get('run_id'):
         event_info['run_id'] = path_info['run_id']
 
+    # chef 10.x seems to depend on the server to generate
+    # a run_id; they are just UUIDs in string form
+    if not event_info.get('run_id'):
+        event_info['run_id'] = str(uuid.uuid4())
+
     LOG.debug('event_info: %s' % event_info)
 
     if record:
         record_event(event_info, path_info)
+
+    return {'run_id': event_info['run_id']}
 
 
 def sink_app(environ, start_response):

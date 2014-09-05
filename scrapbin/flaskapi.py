@@ -48,8 +48,13 @@ class RunAPI(views.MethodView):
 
     def post(self, node_id, run_id):
         LOG.info('POST : %s : %s' % (node_id, run_id))
-        api.handle_request(request.environ)
-        return '' # return 200 OK empty body
+        run_info = api.handle_request(request.environ)
+        uri = flask.url_for('run_api',
+                            node_id=node_id,
+                            run_id=run_info['run_id'])
+        return json.jsonify({'uri': uri,
+                             'summary_only': False,
+                             'run_id': run_info['run_id']})
 
 class ReportAPI(views.MethodView):
 
